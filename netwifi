@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# description	: simple bash script for wireless connection using wpa_supplicant
+# maintainer	: mahirrudin@gmail.com
+# system 	: debian stretch (9.6)
+
+pause(){
+  read -p "Press [Enter] key to continue..." EnterKey
+}
+
+register(){
+	echo ""
+	wpaconfdir="/etc/wpa_supplicant/conf"
+	if [ ! -d $wpaconfdir ]; then sudo mkdir $wpaconfdir; fi
+
+	read -p "Type SSID name you want to registered: " ssid
+	read -p "Type $ssid password: " password
+
+	wpaconfname=`echo "$ssid" | sed 's/ //g' | sed -e 's/\(.*\)/\L\1/'`
+	wpa_passphrase "$ssid" "$password" > /tmp/$wpaconfname
+	sudo mv /tmp/$wpaconfname $wpaconfdir/$wpaconfname
+}
+
+connecting(){
+	echo ""
+	echo "Configuration SSID availabe: "
+	for ssid in `ls /etc/wpa_supplicant/conf/`; do
+		echo " [*] "$ssid;
+	done
+
+	echo ""
+	for dev in `ls /sys/class/net`; do
+		if [ -d "/sys/class/net/$dev/wireless" ]; then
+			echo -e "Detected wireless interfaces: "$dev;
+		fi;
+	done
+
+	# detect if wpa_supplicant installed
+	if [ ! -f "/sbin/wpa_supplicant" ]; then
+	   echo -e "wpasupplicant not found, install first"
+	   echo -e "sudo apt install wpasupplicant"
+	   exit
+	fi
+
+	# detect if wpa_supplicant process available
+	if pgrep wpa_supplicant 2>/dev/null; then
+	   echo -e "Terminating wpa_supplicant old process"
+	   sudo pkill wpa_supplicant 2>/dev/null
+	fi
+
+
+	echo ""
+	read -p "Please type SSID you want to connect: " selected
+
+	echo ""
+	sudo ip link set $dev up && sudo wpa_supplicant -B -i$dev -c /etc/wpa_supplicant/conf/$selected
+	echo -e "Please wait a minute, we still working"
+	sudo rm /var/lib/dhcp/dhclient.*
+	sudo dhclient -r $dev
+	sudo dhclient $dev
+}
+
+# function to display menus
+show_menus() {
+	clear
+	echo "~~~~~~~~~~~~~~~~~~~~~"
+	echo " M A I N - M E N U"
+	echo "~~~~~~~~~~~~~~~~~~~~~"
+	echo "1. Register New SSID"
+	echo "2. Connect to SSID"
+	echo "3. Exit"
+}
+
+# read input from the keyboard and take a action
+read_options(){
+	local choice
+	read -p "Enter choice [ 1 - 3] " choice
+	case $choice in
+		1) register ;;
+		2) connecting ;;
+		3) exit 0;;
+		*) echo -e "Error..." && sleep 2
+	esac
+}
+
+# Trap CTRL+C, CTRL+Z and quit singles
+trap '' SIGINT SIGQUIT SIGTSTP
+
+while true
+do
+	show_menus
+	read_options
+done
