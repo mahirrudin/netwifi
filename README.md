@@ -6,7 +6,7 @@ NetWifi is minimal shell script for wireless connection. Designed for minimal wi
 2. dhclient
 
 ## How to install & usage
-```
+```sh
 git clone https://github.com/mahirrudin/netwifi.git
 sudo cp netwifi /usr/local/bin/
 sudo chmod +x /usr/local/bin/netwifi
