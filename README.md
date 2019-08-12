@@ -14,4 +14,4 @@ sudo netwifi
 ```
 
 ## Demo
-![demo netwifi](https://raw.githubusercontent.com/mahirrudin/netwifi/master/netwifi.gif)
+![netwifi](https://raw.githubusercontent.com/mahirrudin/netwifi/master/netwifi.gif)
